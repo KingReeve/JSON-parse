@@ -134,7 +134,7 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             _ => {
                 let naughty = chars.next().unwrap();
                 return Err(LexerError{
-                    message: format!("Naughty chars get skipped: '{}'",naughty),
+                    message: format!("Naughty chars get errored: '{}'",naughty),
                     line,
                     column,
                 });
