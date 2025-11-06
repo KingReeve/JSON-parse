@@ -7,7 +7,20 @@ fn test_json_file(file_path: &str, should_pass: bool) {
     let contents = fs::read_to_string(file_path)
         .expect(&format!("Failed to read test file: {}", file_path));
 
-    let tokens = lex(&contents);
+    let tokens = match lex(&contents) {
+        Ok(toks) => toks,
+        Err(e) => {
+            if should_pass{
+                panic!(
+                    "Lexing failed for file {}, at line {}, on column {}. error - {}",
+                    file_path, e.line, e.column, e.message
+                );
+            }else{
+                return;
+            }
+
+        }
+    };
     let result = parse(tokens);
 
     if should_pass {

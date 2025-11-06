@@ -28,7 +28,13 @@ fn main() {
     };
 
     // Step 3: Lexing
-    let tokens = lexer::lex(&contents);
+    let tokens = match lexer::lex(&contents) {
+        Ok(token) => token,
+        Err(e) => {
+            eprintln!("Lexer error at line {}, column {}. error - {}",e.line,e.column, e.message);
+            std::process::exit(1);
+        }
+    };
 
     // Step 4: Parsing
     match parser::parse(tokens) {
