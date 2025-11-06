@@ -84,7 +84,7 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             'f' => {
                 let word: String = chars.by_ref().take(5).collect();
                 match word.as_str() {
-                    "fsalse" => tokens.push(Token::False),
+                    "false" => tokens.push(Token::False),
                     _ => {
                         return Err(LexerError {
                             message: format!("Unexpected literal '{}'",word),
