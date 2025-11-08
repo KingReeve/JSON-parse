@@ -1,3 +1,6 @@
+use std::iter::Peekable;
+use std::str::Chars;
+
 #[derive(Debug, PartialEq)]
 pub enum Token {
     LeftBrace,
@@ -29,35 +32,26 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
         match c {
             '{' => {
                 tokens.push(Token::LeftBrace);
-                chars.next();
-                column += 1;
+                advance(&mut chars, &mut line, &mut column);
             },
             '}' => {
                 tokens.push(Token::RightBrace);
-                chars.next();
-                column += 1;
+                advance(&mut chars, &mut line, &mut column);
             },
             ':' => {
                 tokens.push(Token::Colon);
-                chars.next();
-                column += 1;
+                advance(&mut chars, &mut line, &mut column);
             },
             '"' => {
-                chars.next(); // skip opening quote
+                advance(&mut chars, &mut line, &mut column); // skip opening quote
                 let mut string = String::new();
                 while let Some(&ch) = chars.peek() {
                     if ch == '"' {
-                        chars.next();
-                        column += 1;
+                        advance(&mut chars, &mut line, &mut column);
                         break;
                     } // closing quote
-                    if ch == '\n' {
-                        line += 1;
-                        column = 0;
-                    }
                     string.push(ch);
-                    chars.next();
-                    column += 1;
+                    advance(&mut chars, &mut line, &mut column);
                 }
                 if chars.peek().is_none() {
                     return Err(LexerError {
@@ -70,7 +64,12 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             },
 
             't' => {
-                let word: String = chars.by_ref().take(4).collect();
+                let mut word = String::new();
+                for _ in 0..4 {
+                    if let Some(ch) = advance(&mut chars, &mut line, &mut column) {
+                        word.push(ch);
+                    }
+                }
                 match word.as_str() {
                     "true" => tokens.push(Token::True),
                     _ => {
@@ -84,7 +83,12 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             },
 
             'f' => {
-                let word: String = chars.by_ref().take(5).collect();
+                let mut word = String::new();
+                for _ in 0..5 {
+                    if let Some(ch) = advance(&mut chars, &mut line, &mut column) {
+                        word.push(ch);
+                    }
+                }
                 match word.as_str() {
                     "false" => tokens.push(Token::False),
                     _ => {
@@ -98,7 +102,12 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             },
 
             'n' => {
-                let word: String = chars.by_ref().take(4).collect();
+                let mut word = String::new();
+                for _ in 0..4 {
+                    if let Some(ch) = advance(&mut chars, &mut line, &mut column) {
+                        word.push(ch);
+                    }
+                }
                 match word.as_str() {
                     "null" => tokens.push(Token::Null),
                     _ => {
@@ -112,9 +121,15 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             }
 
             c if c.is_ascii_digit() || c == '-' => {
-                let num_str: String = chars.by_ref()
-                    .take_while(|ch| ch.is_ascii_digit() || *ch == '.' || *ch == '-')
-                    .collect();
+                let mut num_str = String::new();
+                while let Some(&ch) = chars.peek() {
+                    if ch.is_ascii_digit() || ch == '.' || ch == '-' {
+                        num_str.push(ch);
+                        advance(&mut chars, &mut line, &mut column);
+                    } else {
+                        break;
+                    }
+                }
                 match num_str.parse::<f64>() {
                     Ok(num) => tokens.push(Token::Number(num)),
                     Err(_) => {
@@ -128,16 +143,10 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             }
             ',' => {
                 tokens.push(Token::Comma);
-                chars.next();
+                advance(&mut chars, &mut line, &mut column);
             }
             c if c.is_whitespace() => {
-                chars.next();
-                if c =='\n' {
-                    line+=1;
-                    column=0;
-                }else{
-                    column+=1;
-                }
+                advance(&mut chars, &mut line, &mut column);
             },
             _ => {
                 let naughty = chars.next().unwrap();
@@ -150,4 +159,18 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
         }
     }
     Ok(tokens)
+}
+
+fn advance(chars: &mut Peekable<Chars>, line: &mut usize, column: &mut usize) -> Option<char> {
+    if let Some(c) = chars.next() {
+        if c=='\n'{
+            *line+=1;
+            *column=0;
+        }else{
+            *column+=1;
+        }
+        Some(c)
+    }else{
+        None
+    }
 }
