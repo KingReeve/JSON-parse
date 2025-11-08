@@ -9,6 +9,8 @@ pub enum Token {
     True,
     False,
     Null,
+    // LeftBracket,
+    // RightBracket,
 }
 
 #[derive(Debug)]
