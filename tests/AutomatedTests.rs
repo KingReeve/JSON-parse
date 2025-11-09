@@ -52,3 +52,11 @@ fn step3_tests() {
     test_json_file(base_path.join("valid.json").to_str().unwrap(), true);
     test_json_file(base_path.join("invalid.json").to_str().unwrap(), false);
 }
+
+#[test]
+fn step4_tests() {
+    let base_path = Path::new("tests/step4");
+    test_json_file(base_path.join("valid.json").to_str().unwrap(), true);
+    test_json_file(base_path.join("valid2.json").to_str().unwrap(), true);
+    test_json_file(base_path.join("invalid.json").to_str().unwrap(), false);
+}

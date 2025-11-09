@@ -12,8 +12,8 @@ pub enum Token {
     True,
     False,
     Null,
-    // LeftBracket,
-    // RightBracket,
+    LeftBracket,
+    RightBracket,
 }
 
 #[derive(Debug)]
@@ -42,6 +42,14 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
                 tokens.push(Token::Colon);
                 advance(&mut chars, &mut line, &mut column);
             },
+            '[' => {
+                tokens.push(Token::LeftBracket);
+                advance(&mut chars, &mut line, &mut column);
+            },
+            ']' => {
+                tokens.push(Token::RightBracket);
+                advance(&mut chars, &mut line, &mut column);
+            }
             '"' => {
                 advance(&mut chars, &mut line, &mut column); // skip opening quote
                 let mut string = String::new();

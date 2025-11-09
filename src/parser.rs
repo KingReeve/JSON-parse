@@ -18,6 +18,7 @@ pub fn parse(tokens: Vec<Token>) -> Result<JsonValue, String> {
 fn parse_value(iter: &mut Peekable<IntoIter<Token>>) -> Result<JsonValue, String> {
     match iter.next(){
         Some(Token::LeftBrace) => parse_object(iter),
+        Some(Token::LeftBracket) => parse_array(iter),
         Some(Token::String(s)) => Ok(JsonValue::String(s)),
         Some(Token::Number(n)) => Ok(JsonValue::Number(n)),
         Some(Token::Null) => Ok(JsonValue::Null),
@@ -69,4 +70,27 @@ fn parse_object(iter: &mut Peekable<IntoIter<Token>>) -> Result<JsonValue, Strin
     }
 
     Ok(JsonValue::Object(json_map))
+}
+
+fn parse_array(iter: &mut Peekable<IntoIter<Token>>) -> Result<JsonValue, String> {
+    let mut json_array = Vec::new();
+
+    if let Some(Token::RightBracket) = iter.peek(){
+        iter.next();
+        return Ok(JsonValue::Array(json_array));
+    }
+
+    loop {
+        let item = parse_value(iter)?;
+        json_array.push(item);
+
+        match iter.next() {
+            Some(Token::RightBracket) => break,
+            Some(Token::Comma) => continue,
+            Some(other) => return Err(format!("Unexpected token found: {:?}",other)),
+            None => return Err("Unexpected end of input.".to_string()),
+        }
+    }
+
+    Ok(JsonValue::Array(json_array))
 }
